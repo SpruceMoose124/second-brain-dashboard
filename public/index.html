@@ -371,7 +371,7 @@ async function fetchItems() {
     );
     if (!res.ok) throw new Error("API error: " + res.status);
     const data = await res.json();
-    allItems = data.filter(d => d.headline && d.headline !== "test title" && d.summary && d.summary !== "test summary");
+    allItems = data.filter(d => (d.headline || d.title) && d.title !== "test title" && d.summary && d.summary !== "test summary");
     updateStats();
     renderFilters();
     render();
@@ -432,7 +432,7 @@ function render() {
 
     // Header
     html += `<div class="card-header">`;
-    html += `<div class="card-headline">${item.headline || item.title || "Untitled"}</div>`;
+    html += `<div class="card-headline">${item.title || item.headline || "Untitled"}</div>`;
     html += `<div class="relevance-badge" style="background:${REL_COLORS[item.relevance_score] || "#74796D"}">${item.relevance_score || "?"}</div>`;
     html += `</div>`;
 
