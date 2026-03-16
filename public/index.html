@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Second Brain — Daily Digest</title>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F0EDE6;
+    --surface: #FAFAF7;
+    --text: #1A1A18;
+    --text-secondary: #4A4A45;
+    --muted: #8A8A80;
+    --faint: #B0B0A8;
+    --border: #E8E4DE;
+    --dark: #1A1A18;
+    --accent: #98C379;
+    --track-jax: #F4845F;
+    --track-news: #7EC4CF;
+    --track-ai: #B8A9C9;
+    --track-auto: #98C379;
+    --rel-5: #2D6A4F;
+    --rel-4: #40916C;
+    --rel-3: #74796D;
+    --rel-2: #997B66;
+    --rel-1: #BC4749;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: 'DM Sans', -apple-system, system-ui, sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .header {
+    background: var(--dark);
+    padding: 28px 32px 24px;
+    border-bottom: 3px solid var(--accent);
+  }
+  .header-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .header-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .header-title {
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--surface);
+  }
+  .header-stats {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+  .stat { text-align: center; }
+  .stat-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--surface);
+  }
+  .stat-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .stat-divider {
+    width: 1px;
+    height: 32px;
+    background: #333;
+  }
+
+  .controls {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 32px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .controls-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .track-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+  .track-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 2px solid transparent;
+    background: transparent;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .track-btn:hover { background: var(--border); }
+  .track-btn.active { border-color: var(--dark); background: var(--dark); color: var(--surface); }
+  .track-btn.active[data-track="jaxscoops"] { border-color: var(--track-jax); background: #F4845F18; color: var(--track-jax); }
+  .track-btn.active[data-track="newsletter"] { border-color: var(--track-news); background: #7EC4CF18; color: var(--track-news); }
+  .track-btn.active[data-track="ai-tools"] { border-color: var(--track-ai); background: #B8A9C918; color: var(--track-ai); }
+  .track-btn.active[data-track="automation"] { border-color: var(--track-auto); background: #98C37918; color: var(--track-auto); }
+  .track-count {
+    margin-left: 5px;
+    opacity: 0.6;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+  }
+  .sort-controls { display: flex; gap: 4px; align-items: center; }
+  .sort-label { font-size: 11px; color: var(--faint); margin-right: 4px; }
+  .sort-btn {
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .sort-btn.active { background: var(--dark); color: var(--surface); }
+  .refresh-btn {
+    margin-left: 8px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .refresh-btn:hover { background: var(--border); }
+
+  .content {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 32px 60px;
+  }
+
+  .card {
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 20px 22px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+  .card.expanded { box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+  .card-headline {
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--text);
+    flex: 1;
+  }
+  .relevance-badge {
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 6px;
+    padding: 3px 8px;
+    min-width: 24px;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    flex-shrink: 0;
+  }
+
+  .card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .track-tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .card-category { font-size: 12px; color: var(--muted); }
+  .card-source { font-size: 11px; color: var(--faint); margin-left: auto; }
+
+  .card-summary {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+  .card-summary.clamped {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .expanded-content { margin-top: 16px; }
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .insight-row, .action-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+  .insight-arrow { flex-shrink: 0; font-weight: 700; }
+  .tags-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .tag-pill {
+    font-size: 11px;
+    color: var(--muted);
+    background: #EEEEE8;
+    border-radius: 4px;
+    padding: 2px 7px;
+  }
+  .source-link {
+    display: inline-block;
+    margin-top: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid;
+  }
+
+  .loading, .empty { text-align: center; padding: 60px; color: var(--muted); }
+  .error-box {
+    background: #FFF5F5;
+    border: 1px solid #FFCCCC;
+    border-radius: 8px;
+    padding: 16px;
+    color: var(--rel-1);
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 640px) {
+    .header { padding: 20px 16px; }
+    .header-inner { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .controls { padding: 12px 16px; }
+    .content { padding: 16px; }
+    .card { padding: 16px; }
+    .card-source { margin-left: 0; width: 100%; margin-top: 4px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <div class="header-label">Second Brain</div>
+      <h1 class="header-title">Daily Digest</h1>
+    </div>
+    <div class="header-stats">
+      <div class="stat">
+        <div class="stat-value" id="stat-today">—</div>
+        <div class="stat-label">Today</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <div class="stat-value" id="stat-total">—</div>
+        <div class="stat-label">Total</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <div class="stat-value" id="stat-avg">—</div>
+        <div class="stat-label">Avg Score</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <div class="controls-inner">
+    <div class="track-filters" id="track-filters"></div>
+    <div class="sort-controls">
+      <span class="sort-label">Sort:</span>
+      <button class="sort-btn active" data-sort="date">Latest</button>
+      <button class="sort-btn" data-sort="relevance">Relevance</button>
+      <button class="refresh-btn" id="refresh-btn">↻ Refresh</button>
+    </div>
+  </div>
+</div>
+
+<div class="content" id="content">
+  <div class="loading">Loading digest...</div>
+</div>
+
+<script>
+// ===== CONFIG =====
+const SUPABASE_URL = "https://vyqzenbiopldebrmfmoh.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ5cXplbmJpb3BsZGVicm1mbW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU2ODk2MDIsImV4cCI6MjA4OTExMzA1Mn0.eMl8u8dBn2T6o2vm0etLuqP4xL9VrmQnr_r5PYEhZnw";
+
+const TRACKS = [
+  { id: "all", label: "All", color: "#E8E4DE" },
+  { id: "jaxscoops", label: "Jax Scoops", color: "#F4845F" },
+  { id: "newsletter", label: "Newsletter", color: "#7EC4CF" },
+  { id: "ai-tools", label: "AI Tools", color: "#B8A9C9" },
+  { id: "automation", label: "Automation", color: "#98C379" },
+];
+
+const REL_COLORS = { 5: "#2D6A4F", 4: "#40916C", 3: "#74796D", 2: "#997B66", 1: "#BC4749" };
+
+// ===== STATE =====
+let allItems = [];
+let activeTrack = "all";
+let sortBy = "date";
+let expandedId = null;
+
+// ===== HELPERS =====
+function parseArr(val) {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  try { const p = JSON.parse(val); return Array.isArray(p) ? p : []; } catch { return []; }
+}
+
+function timeAgo(d) {
+  const hrs = Math.floor((Date.now() - new Date(d)) / 3600000);
+  if (hrs < 1) return "just now";
+  if (hrs < 24) return hrs + "h ago";
+  const days = Math.floor(hrs / 24);
+  return days === 1 ? "yesterday" : days + "d ago";
+}
+
+function getTrack(id) {
+  return TRACKS.find(t => t.id === id) || TRACKS[0];
+}
+
+// ===== FETCH =====
+async function fetchItems() {
+  document.getElementById("content").innerHTML = '<div class="loading">Loading digest...</div>';
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/digest_items?select=*&order=created_at.desc&limit=200`,
+      { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
+    );
+    if (!res.ok) throw new Error("API error: " + res.status);
+    const data = await res.json();
+    allItems = data.filter(d => d.headline && d.headline !== "test title" && d.summary && d.summary !== "test summary");
+    updateStats();
+    renderFilters();
+    render();
+  } catch (err) {
+    document.getElementById("content").innerHTML = `<div class="error-box">Failed to load: ${err.message}. Check your Supabase anon key.</div>`;
+  }
+}
+
+// ===== STATS =====
+function updateStats() {
+  const today = new Date().toDateString();
+  const todayCount = allItems.filter(i => new Date(i.created_at).toDateString() === today).length;
+  const avg = allItems.length > 0
+    ? (allItems.reduce((s, i) => s + (i.relevance_score || 0), 0) / allItems.length).toFixed(1)
+    : "—";
+  document.getElementById("stat-today").textContent = todayCount;
+  document.getElementById("stat-total").textContent = allItems.length;
+  document.getElementById("stat-avg").textContent = avg;
+}
+
+// ===== FILTERS =====
+function renderFilters() {
+  const counts = { all: allItems.length };
+  TRACKS.forEach(t => { if (t.id !== "all") counts[t.id] = allItems.filter(i => i.track === t.id).length; });
+
+  const container = document.getElementById("track-filters");
+  container.innerHTML = TRACKS.map(t =>
+    `<button class="track-btn ${activeTrack === t.id ? "active" : ""}" data-track="${t.id}">${t.label}<span class="track-count">${counts[t.id] || 0}</span></button>`
+  ).join("");
+
+  container.querySelectorAll(".track-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      activeTrack = btn.dataset.track;
+      renderFilters();
+      render();
+    });
+  });
+}
+
+// ===== RENDER =====
+function render() {
+  let list = activeTrack === "all" ? [...allItems] : allItems.filter(i => i.track === activeTrack);
+  if (sortBy === "relevance") list.sort((a, b) => (b.relevance_score || 0) - (a.relevance_score || 0));
+
+  if (list.length === 0) {
+    document.getElementById("content").innerHTML = '<div class="empty">No items found for this track.</div>';
+    return;
+  }
+
+  document.getElementById("content").innerHTML = list.map(item => {
+    const track = getTrack(item.track);
+    const expanded = expandedId === item.id;
+    const insights = parseArr(item.key_insights);
+    const actions = parseArr(item.action_items);
+    const tags = parseArr(item.tags);
+
+    let html = `<div class="card ${expanded ? "expanded" : ""}" data-id="${item.id}" style="${expanded ? `border-color: ${track.color}` : ""}">`;
+
+    // Header
+    html += `<div class="card-header">`;
+    html += `<div class="card-headline">${item.headline || item.title || "Untitled"}</div>`;
+    html += `<div class="relevance-badge" style="background:${REL_COLORS[item.relevance_score] || "#74796D"}">${item.relevance_score || "?"}</div>`;
+    html += `</div>`;
+
+    // Meta
+    html += `<div class="card-meta">`;
+    html += `<span class="track-tag" style="background:${track.color}22;color:${track.color};border:1px solid ${track.color}44">${track.label}</span>`;
+    if (item.category) html += `<span class="card-category">${item.category}</span>`;
+    html += `<span class="card-source">${item.source_name || ""} · ${timeAgo(item.created_at)}${item.read_time_minutes ? ` · ${item.read_time_minutes}m read` : ""}</span>`;
+    html += `</div>`;
+
+    // Summary
+    html += `<div class="card-summary ${expanded ? "" : "clamped"}">${item.summary || ""}</div>`;
+
+    // Expanded
+    if (expanded) {
+      html += `<div class="expanded-content">`;
+      if (insights.length) {
+        html += `<div style="margin-bottom:14px"><div class="section-label">Key Insights</div>`;
+        insights.forEach(i => { html += `<div class="insight-row"><span class="insight-arrow" style="color:${track.color}">→</span><span>${i}</span></div>`; });
+        html += `</div>`;
+      }
+      if (actions.length) {
+        html += `<div style="margin-bottom:14px"><div class="section-label">Action Items</div>`;
+        actions.forEach(a => { html += `<div class="action-row"><span>☐</span><span>${a}</span></div>`; });
+        html += `</div>`;
+      }
+      if (tags.length) {
+        html += `<div class="tags-row">`;
+        tags.forEach(t => { html += `<span class="tag-pill">#${t}</span>`; });
+        html += `</div>`;
+      }
+      if (item.source_url && item.source_url !== "test") {
+        html += `<a class="source-link" href="${item.source_url}" target="_blank" rel="noopener" style="color:${track.color};border-color:${track.color}44">View source ↗</a>`;
+      }
+      html += `</div>`;
+    }
+
+    html += `</div>`;
+    return html;
+  }).join("");
+
+  // Click handlers
+  document.querySelectorAll(".card").forEach(card => {
+    card.addEventListener("click", (e) => {
+      if (e.target.tagName === "A") return;
+      const id = card.dataset.id;
+      expandedId = expandedId === id ? null : id;
+      render();
+    });
+  });
+}
+
+// ===== SORT =====
+document.querySelectorAll(".sort-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    sortBy = btn.dataset.sort;
+    document.querySelectorAll(".sort-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    render();
+  });
+});
+
+// ===== REFRESH =====
+document.getElementById("refresh-btn").addEventListener("click", fetchItems);
+
+// ===== INIT =====
+fetchItems();
+</script>
+</body>
+</html>
