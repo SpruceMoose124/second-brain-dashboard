@@ -122,3 +122,4 @@ Deploy my Second Brain dashboard to Vercel. Here's what to do:
 | Mem push fails | Check MEM_API_KEY is valid. Mem API may rate limit — the function adds 500ms delay between pushes. |
 | Duplicate Mem notes | The function only processes items where `synced_to_mem` is false/null. If you re-run, it won't duplicate. |
 | Items missing fields | The filter excludes rows with null headline or "test title"/"test summary" values. |
+
